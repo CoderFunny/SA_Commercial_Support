@@ -121,13 +121,21 @@ def ReadAndAnalysis(XLSPath):
     row = 0
     col = 0
     flag = 0
+    Nrow = 0
+    Ncol = 0
+    Nflag = 0
+    title = ''
     for rown in range(0, num_rows):
         for coln in range(num_cols):
             # 解析指定列
             for tclo in sum_target_col_list:
                 if tclo in str(worksheet.cell_value(rown, coln)) and coln > 2:
                     if 'AMF注册态最大用户数' == tclo or '实时PDU会话数' in tclo or '创建的平均在线Session数' in tclo:
-                        sum_target_col_list[tclo] = MaxNum(rown + 1, coln, num_rows, worksheet)
+                        Nflag = 1
+                        Nrow = rown + 1
+                        Ncol = coln
+                        title = tclo
+                        # sum_target_col_list[tclo] = MaxNum(rown + 1, coln, num_rows, worksheet)
                         break
                     if 'N2模式二次寻呼响应次数' in tclo or 'N2模式寻呼请求次数' in tclo or 'N2模式一次寻呼响应次数' in tclo:
                         sum_target_col_list[tclo] = AverageNum(rown + 1, coln, num_rows, worksheet)
@@ -151,7 +159,15 @@ def ReadAndAnalysis(XLSPath):
             if 'AMF' in str(worksheet.cell_value(r, col - 2)):
                 VMDic['AMF_CPU_Rate'] = VMDic['AMF_CPU_Rate'] + float(worksheet.cell_value(r, col))
                 VMDic['AMF_Count'] = VMDic['AMF_Count'] + 1
-
+    if Nflag == 1:
+        UserNumList = []
+        while Nrow < num_rows:
+            UserNumList.append(int(worksheet.cell_value(Nrow, Ncol)) + int(worksheet.cell_value(Nrow + 1, Ncol)))
+            Nrow = Nrow + 2
+        if len(UserNumList):
+            UserNumList.sort(reverse=True)
+            sum_target_col_list[title] = UserNumList[0]
+        # print(UserNumList)
     logging.info('analytical complete.', )
 
 
